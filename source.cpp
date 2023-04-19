@@ -4,14 +4,14 @@
 #include <vector>
 #include <cctype>
 #include<stdio.h>
-using namespace std;
+#include<time.h>
 using std::cin, std::cout, std::string, std::endl;
-int numMoviesRented = 0;
+int numMoviesRented;
 const int MAX_MOVIES = 100;
-int day, month, year, day_return, month_return, year_return;
-struct Time {
-    int hours;
-    int minutes;
+struct DATE {
+    int day;
+    int month;
+    int year;
 };
 struct movie {
     string name;
@@ -25,12 +25,14 @@ struct MovieRental {
     string customer;
     int rentalPeriod;
     float rentalFee;
+    DATE rent_date;
 } rentedMovies[MAX_MOVIES];
 struct User {
     string name;
     int id;
-}user, users[100];
-int returnDate(int rentalPeriod);
+    DATE rent, return;
+} users[100];
+void returnDate(int rentalPeriod);
 int dayenter();
 int monthenter();
 int yearenter();
@@ -91,7 +93,104 @@ void rent_movie(int n) {
             }
         } while (true);
         numMoviesRented++;
+        cout << "Enter Today's Date" << endl << "(Date, Month then Year):\n";
+        rentedMovies[i].rent_date.day = dayenter();
+        rentedMovies[i].rent_date.month = monthenter();
+        rentedMovies[i].rent_date.year = yearenter();
+        if (((rentedMovies[i].rent_date.month == 4 || rentedMovies[i].rent_date.month == 6 || rentedMovies[i].rent_date.month == 9 || rentedMovies[i].rent_date.month == 11) && rentedMovies[i].rent_date.day > 30))
+        {
+            cout << "invalid day input" << endl;
+            rentedMovies[i].rent_date.day = dayenter();
+        }
+        else if (((rentedMovies[i].rent_date.year % 4 == 0) && ((rentedMovies[i].rent_date.year % 400 == 0) || (rentedMovies[i].rent_date.year % 100 != 0))) && rentedMovies[i].rent_date.month == 2 && rentedMovies[i].rent_date.day > 29)
+        {
+            cout << "invalid day input" << endl;
+            rentedMovies[i].rent_date.day = dayenter();
+        }
+        else if (rentedMovies[i].rent_date.month == 2 && rentedMovies[i].rent_date.day > 28)
+        {
+            cout << "invalid day input" << endl;
+            rentedMovies[i].rent_date.day = dayenter();
+        }
+        if (rentedMovies[i].rentalPeriod == 30)
+            rentedMovies[i].rent_date.month++;
+        if (rentedMovies[i].rentalPeriod == 365)
+            rentedMovies[i].rent_date.year++;
+        if (rentedMovies[i].rentalPeriod < 30)
+        {
+            if ((rentedMovies[i].rent_date.day + rentedMovies[i].rentalPeriod) > 30)
+            {
+                rentedMovies[i].rent_date.day = (rentedMovies[i].rent_date.day + rentedMovies[i].rentalPeriod) - 30;
+                rentedMovies[i].rent_date.month++;
+            }
+            else if ((rentedMovies[i].rent_date.day + rentedMovies[i].rentalPeriod) < 30)
+                rentedMovies[i].rent_date.day += rentedMovies[i].rentalPeriod;
+            if (rentedMovies[i].rent_date.month > 12)
+            {
+                rentedMovies[i].rent_date.year++;
+                rentedMovies[i].rent_date.month = rentedMovies[i].rent_date.month - 12;
+            }
+        }
+        if ((rentedMovies[i].rentalPeriod > 30) && (rentedMovies[i].rentalPeriod < 365))
+        {
+            while (rentedMovies[i].rentalPeriod > 30)
+            {
+                rentedMovies[i].rentalPeriod -= 30;
+                rentedMovies[i].rent_date.month++;
+            }
+            if ((rentedMovies[i].rent_date.day + rentedMovies[i].rentalPeriod) > 30)
+            {
+                rentedMovies[i].rent_date.day = ((rentedMovies[i].rent_date.day + rentedMovies[i].rentalPeriod) - 30);
+                rentedMovies[i].rent_date.month++;
+            }
+            if ((rentedMovies[i].rent_date.day + rentedMovies[i].rentalPeriod) < 30)
+                rentedMovies[i].rent_date.day += rentedMovies[i].rentalPeriod;
+            if (rentedMovies[i].rent_date.month > 12)
+            {
+                rentedMovies[i].rent_date.year++;
+                rentedMovies[i].rent_date.month = rentedMovies[i].rent_date.month - 12;
+            }
+        }
+        if (rentedMovies[i].rentalPeriod > 365)
+        {
+            int remaining = (rentedMovies[i].rentalPeriod - 365);
+            rentedMovies[i].rent_date.year++;
+            if (remaining < 30)
+            {
+                if ((rentedMovies[i].rent_date.day + remaining) > 30)
+                {
+                    rentedMovies[i].rent_date.day = ((rentedMovies[i].rent_date.day + rentedMovies[i].rentalPeriod) - 30);
+                    rentedMovies[i].rent_date.month++;
+                }
+                if ((rentedMovies[i].rent_date.day + remaining) < 30)
+                    rentedMovies[i].rent_date.day += remaining;
+            }
+            else if (remaining == 30)
+                rentedMovies[i].rent_date.month++;
+            else if (remaining > 30)
+            {
+                while (remaining > 30)
+                {
+                    rentedMovies[i].rent_date.month++;
+                    remaining -= 30;
+                }
+                if ((rentedMovies[i].rent_date.day + remaining) > 30)
+                {
+                    rentedMovies[i].rent_date.day = ((rentedMovies[i].rent_date.day + rentedMovies[i].rentalPeriod) - 30);
+                    rentedMovies[i].rent_date.month++;
+                }
+                if ((rentedMovies[i].rent_date.day + remaining) < 30)
+                    rentedMovies[i].rent_date.day += remaining;
+            }
+            if (rentedMovies[i].rent_date.month > 12)
+            {
+                rentedMovies[i].rent_date.year++;
+                rentedMovies[i].rent_date.month = rentedMovies[i].rent_date.month - 12;
+            }
+        }
+        cout << "The Return Date is:\n" << rentedMovies[i].rent_date.day << "/" << rentedMovies[i].rent_date.month << "/" << rentedMovies[i].rent_date.year;
     }
+
 }
 void movie_rented() {
     for (int i = 0; i < numMoviesRented; i++) {
@@ -175,167 +274,6 @@ void inputmovie(int n)
         getline(cin, m[i].language);
         cout << "added" << endl;
     }
-}
-int returnDate(int rentalPeriod)
-{
-    cout << "Enter Today's Date" << endl << "(Date, Month then Year):\n";
-    day = dayenter();
-    month = monthenter();
-    year = yearenter();
-    if (rentalPeriod == 30)
-        month++;
-    if (rentalPeriod == 365)
-        year++;
-    if (rentalPeriod < 30)
-    {
-        if ((day + rentalPeriod) > 30)
-        {
-            day = (day + rentalPeriod) - 30;
-            month++;
-        }
-        else if ((day + rentalPeriod) < 30)
-            day += rentalPeriod;
-        if (month > 12)
-        {
-            year++;
-            month = month - 12;
-        }
-    }
-    if ((rentalPeriod > 30) && (rentalPeriod < 365))
-    {
-        while (rentalPeriod > 30)
-        {
-            rentalPeriod -= 30;
-            month++;
-        }
-
-        if ((day + rentalPeriod) > 30)
-        {
-            day = ((day + rentalPeriod) - 30);
-            month++;
-        }
-        if ((day + rentalPeriod) < 30)
-            day += rentalPeriod;
-        if (month > 12)
-        {
-            year++;
-            month = month - 12;
-        }
-    }
-    if (rentalPeriod > 365)
-    {
-        int remaining = (rentalPeriod - 365);
-        year++;
-        if (remaining < 30)
-        {
-            if ((day + remaining) > 30)
-            {
-                day = ((day + rentalPeriod) - 30);
-                month++;
-            }
-            if ((day + remaining) < 30)
-                day += remaining;
-        }
-        else if (remaining == 30)
-            month++;
-        else if (remaining > 30)
-        {
-            while (remaining > 30)
-            {
-                month++;
-                remaining -= 30;
-            }
-            if ((day + remaining) > 30)
-            {
-                day = ((day + rentalPeriod) - 30);
-                month++;
-            }
-            if ((day + remaining) < 30)
-                day += remaining;
-        }
-        if (month > 12)
-        {
-            year++;
-            month = month - 12;
-        }
-    }
-    cout << "The Return Date is:\n" << day << "/" << month << "/" << year;
-}
-int monthenter()
-{
-    do {
-        cin >> month;
-        if (cin.fail() || month > 12)
-        {
-
-            cout << "invalid input" << endl;
-            cin.clear();
-            cin.ignore(1000, '\n');
-            continue;
-        }
-        else
-        {
-            return month;
-            break;
-        }
-    } while (true);
-}
-int dayenter()
-{
-    do {
-        cin >> day;
-        if (cin.fail() || day > 31)
-        {
-            cout << "invalid input" << endl;
-            cin.clear();
-            cin.ignore(1000, '\n');
-            continue;
-        }
-        else
-        {
-            return day;
-            break;
-        }
-    } while (1);
-}
-int yearenter()
-{
-
-    if (((month == 4 || month == 6 || month == 9 || month == 11) && day > 30))
-    {
-        cout << "invalid day input" << endl;
-        day = dayenter();
-    }
-    else if (((year % 4 == 0) && ((year % 400 == 0) || (year % 100 != 0))) && month == 2 && day > 29)
-    {
-
-        cout << "invalid day input" << endl;
-        day = dayenter();
-
-    }
-    else if (month == 2 && day > 28)
-    {
-
-        cout << "invalid day input" << endl;
-        day = dayenter();
-
-    }
-    cin >> year;
-    do {
-
-        if (cin.fail())
-        {
-            cout << "invalid input" << endl;
-            cin.clear();
-            cin.ignore(1000, '\n');
-            continue;
-        }
-        else
-        {
-            return year;
-            break;
-        }
-    } while (1);
 }
 void add_new_user(int n)
 {
@@ -435,4 +373,64 @@ int over_due_fn(int dof[3], int dof2[3], double price) //  index[0] is the day a
             return overdue;
         }
     }
+}
+int monthenter()
+{
+    int month;
+    do {
+        cin >> month;
+        if (cin.fail() || month > 12)
+        {
+
+            cout << "invalid input" << endl;
+            cin.clear();
+            cin.ignore(1000, '\n');
+            continue;
+        }
+        else
+        {
+            return month;
+            break;
+        }
+    } while (true);
+}
+int dayenter()
+{
+    int day;
+    do {
+        cin >> day;
+        if (cin.fail() || day > 31)
+        {
+            cout << "invalid input" << endl;
+            cin.clear();
+            cin.ignore(1000, '\n');
+            continue;
+        }
+        else
+        {
+            return day;
+            break;
+        }
+    } while (1);
+}
+int yearenter()
+{
+    int year;
+
+    cin >> year;
+    do {
+
+        if (cin.fail())
+        {
+            cout << "invalid input" << endl;
+            cin.clear();
+            cin.ignore(1000, '\n');
+            continue;
+        }
+        else
+        {
+            return year;
+            break;
+        }
+    } while (1);
 }
